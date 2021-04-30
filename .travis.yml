@@ -3,7 +3,7 @@ services: docker
 cache:
 - bundler
 before_install:
-  - gem install -v 1.17.3 bundler --no-document --no-ri
+  - gem install -v 1.17.3 bundler --no-rdoc --no-document
   - bundle _1.17.3_ install
 install:
 - bundle install
