@@ -10,8 +10,7 @@ rvm:
 notifications:
   email:
     recipients:
-    - sensu-plugin@sensu-plugins.io
-    - tim@cozy.co
+    - alfonso.delgado@viamo.io
     on_success: change
     on_failure: always
 script:
@@ -30,7 +29,7 @@ deploy:
     all_branches: true
     rvm: 2.3.0
     rvm: 2.4.1
-    repo: sensu-plugins/sensu-plugins-rabbitmq
+    repo: adelgado-viamo/sensu-plugins-rabbitmq
 - provider: script
   script: bonsai/ruby-runtime/travis-build-ruby-plugin-assets.sh sensu-plugins-rabbitmq
   skip_cleanup: true
