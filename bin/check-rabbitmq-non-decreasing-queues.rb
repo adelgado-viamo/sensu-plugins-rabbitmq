@@ -29,8 +29,6 @@ require 'carrot-top'
 require 'inifile'
 require 'date'
 require 'json'
-
-
 # main plugin class
 class CheckRabbitMQMessages < Sensu::Plugin::Check::CLI
   option :host,
@@ -163,7 +161,6 @@ class CheckRabbitMQMessages < Sensu::Plugin::Check::CLI
     queues_register = JSON.parse(file) # Get data from file log
     now = DateTime.parse(now_str)
     queues_hash.each do |queue_name, hash_data|
-    # puts "queue_name = #{queue_name} hash_data = #{hash_data.to_json}" # For debugging
       if queues_register.key?(queue_name)
         # next if hash_data["last_value"] <= max accepted value
         if hash_data['last_value'] <= max_accepted_value
@@ -187,13 +184,13 @@ class CheckRabbitMQMessages < Sensu::Plugin::Check::CLI
         # Always update last value
         queues_register[queue_name]['last_value'] = hash_data['last_value']
       else
-        queues_register[queue_name] = {'last_decrease' => hash_data['last_decrease'],'last_value' => hash_data['last_value']}
+        queues_register[queue_name] = { 'last_decrease' => hash_data['last_decrease'], 'last_value' => hash_data['last_value'] }
       end
     end
     # Updating queues log
-    File.open(filename,"w") do |f|
-        f.write(queues_register.to_json)
-      end
+    File.open(filename, "w") do |f|
+      f.write(queues_register.to_json)
+    end
     critical "Queues non decreasing #{generate_message(crit_queues)} for more than #{max_crit_minutes_limit} minutes" unless crit_queues.empty?
     warning "Queues non decreasing #{generate_message(warn_queues)} for more than #{max_warn_minutes_limit} minutes" unless warn_queues.empty?
     ok 'All Queues OK'
