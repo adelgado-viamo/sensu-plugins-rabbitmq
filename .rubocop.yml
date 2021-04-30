@@ -37,3 +37,4 @@ Performance/RegexpMatch:
 Metrics/BlockLength:
   Exclude:
     - 'test/**/*'
+    - bin/check-rabbitmq-non-decreasing-queues.rb
