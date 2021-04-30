@@ -196,8 +196,8 @@ class CheckRabbitMQMessages < Sensu::Plugin::Check::CLI
     ok 'All Queues OK'
     else
       File.open(filename,"w") do |f|
-      f.write(queues_hash.to_json)
-    end
+        f.write(queues_hash.to_json)
+      end
     ok 'Log File created'
     end
   end
