@@ -87,7 +87,6 @@ class CheckRabbitMQMessages < Sensu::Plugin::Check::CLI
          short: '-i',
          long: '--ini VALUE'
 
-
   option :max_crit_non_decreasing_minutes,
          short: '-maxcritminutes NON_DECREASING_MINUTES',
          long: '--max_crit_nondecreasing_minutes NON_DECREASING_MINUTES',
@@ -157,48 +156,48 @@ class CheckRabbitMQMessages < Sensu::Plugin::Check::CLI
     # puts "#{queues_hash.to_json}"
     # If file exists compare time and messages count
     if File.exist?(filename)
-    file = File.read(filename)
-    queues_register = JSON.parse(file) # Get data from file log
-    now = DateTime.parse(now_str)
-    queues_hash.each do |queue_name, hash_data|
-      if queues_register.key?(queue_name)
-        # next if hash_data["last_value"] <= max accepted value
-        if hash_data['last_value'] <= max_accepted_value
-          queues_register[queue_name]['last_decrease'] = hash_data['last_decrease']
+      file = File.read(filename)
+      queues_register = JSON.parse(file) # Get data from file log
+      now = DateTime.parse(now_str)
+      queues_hash.each do |queue_name, hash_data|
+        if queues_register.key?(queue_name)
+          # next if hash_data["last_value"] <= max accepted value
+          if hash_data['last_value'] <= max_accepted_value
+            queues_register[queue_name]['last_decrease'] = hash_data['last_decrease']
+            queues_register[queue_name]['last_value'] = hash_data['last_value']
+            next
+          end
+          if hash_data['last_value'] >= queues_register[queue_name]['last_value']
+            start_time = DateTime.parse(queues_register[queue_name]['last_decrease'])
+            elapsed_minutes = ((now - start_time) * 24 * 60).to_i
+            # puts "Debugging elapsed minutes #{elapsed_minutes}"
+            if elapsed_minutes >= max_crit_minutes_limit
+              crit_queues[queue_name] = hash_data['last_value']
+            end
+            if elapsed_minutes >= max_warn_minutes_limit
+              warn_queues[queue_name] = hash_data['last_value']
+            end
+          else
+            queues_register[queue_name]['last_decrease'] = hash_data['last_decrease']
+          end
+          # Always update last value
           queues_register[queue_name]['last_value'] = hash_data['last_value']
-          next
-        end
-        if hash_data['last_value'] >= queues_register[queue_name]['last_value']
-          start_time = DateTime.parse(queues_register[queue_name]['last_decrease'])
-          elapsed_minutes = ((now - start_time) * 24 * 60).to_i
-          # puts "Debugging elapsed minutes #{elapsed_minutes}"
-          if elapsed_minutes >= max_crit_minutes_limit
-            crit_queues[queue_name] = hash_data['last_value']
-          end
-          if elapsed_minutes >= max_warn_minutes_limit
-            warn_queues[queue_name] = hash_data['last_value']
-          end
         else
-          queues_register[queue_name]['last_decrease'] = hash_data['last_decrease']
+          queues_register[queue_name] = { 'last_decrease' => hash_data['last_decrease'], 'last_value' => hash_data['last_value'] }
         end
-        # Always update last value
-        queues_register[queue_name]['last_value'] = hash_data['last_value']
-      else
-        queues_register[queue_name] = { 'last_decrease' => hash_data['last_decrease'], 'last_value' => hash_data['last_value'] }
       end
-    end
     # Updating queues log
-    File.open(filename, "w") do |f|
-      f.write(queues_register.to_json)
-    end
-    critical "Queues non decreasing #{generate_message(crit_queues)} for more than #{max_crit_minutes_limit} minutes" unless crit_queues.empty?
-    warning "Queues non decreasing #{generate_message(warn_queues)} for more than #{max_warn_minutes_limit} minutes" unless warn_queues.empty?
-    ok 'All Queues OK'
+      File.open(filename, 'w') do |f|
+        f.write(queues_register.to_json)
+      end
+      critical "Queues non decreasing #{generate_message(crit_queues)} for more than #{max_crit_minutes_limit} minutes" unless crit_queues.empty?
+      warning "Queues non decreasing #{generate_message(warn_queues)} for more than #{max_warn_minutes_limit} minutes" unless warn_queues.empty?
+      ok 'All Queues OK'
     else
-      File.open(filename,"w") do |f|
+      File.open(filename,'w') do |f|
         f.write(queues_hash.to_json)
       end
-    ok 'Log File created'
+      ok 'Log File created'
     end
   end
 end
