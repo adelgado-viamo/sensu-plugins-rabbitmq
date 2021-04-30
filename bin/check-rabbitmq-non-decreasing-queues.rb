@@ -187,10 +187,7 @@ class CheckRabbitMQMessages < Sensu::Plugin::Check::CLI
         # Always update last value
         queues_register[queue_name]['last_value'] = hash_data['last_value']
       else
-        queues_register[queue_name] = {
-          'last_decrease" => hash_data["last_decrease'],
-          'last_value' => hash_data['last_value']
-        }
+        queues_register[queue_name] = {'last_decrease' => hash_data['last_decrease'],'last_value' => hash_data['last_value']}
       end
     end
     # Updating queues log
